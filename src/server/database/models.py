@@ -33,7 +33,7 @@ class AuthData(BaseModel):
 
 
 class Staff(BaseModel):
-    id_user = ForeignKeyField(Users, default=2)
+    id_user = ForeignKeyField(Users, default=1)
     id_post = ForeignKeyField(Post, default=None)
     id_department = ForeignKeyField(Department, default=None)
 
@@ -49,7 +49,7 @@ class Status_request(BaseModel):
 class Request(BaseModel):
     add_data = DateField(default='')
     id_status_req = ForeignKeyField(Status_request, default=2)
-    id_user = ForeignKeyField(Users, default=1)
+    id_user = ForeignKeyField(Users, default=2)
 
 
 class Type_of_disease(BaseModel):
