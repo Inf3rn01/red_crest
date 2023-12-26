@@ -2,7 +2,7 @@ import requests
 import json
 import settings
 
-server_url: str = f'http://{settings.SERVER_HOST}:{settings.SERVER_PORT}'
+server_url: str = f'http://{settings.HOST}:{settings.PORT}'
 
 
 def server_available(func):
@@ -22,8 +22,8 @@ def check_connection():
 
 
 @server_available
-def register(fullname: str, login_str: str, password: str) -> bool:
-    new_user_data = {'id': 0, 'fullname': fullname, 'balance': 1000, 'regular': False}
+def register(full_name: str, login_str: str, password: str) -> bool:
+    new_user_data = {'id': 0, 'FIO': full_name, 'id_role': 0}
 
     new_user_answer = requests.post(
         url=f'{server_url}/user/create',

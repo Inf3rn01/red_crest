@@ -23,12 +23,12 @@ class Role(BaseModel):
 
 class Users(BaseModel):
     FIO = CharField(default='')
-    id_role = IntegerField(default=None)
+    id_role = ForeignKeyField(Role, default=0)
 
 
 class AuthData(BaseModel):
-    login = CharField(default="")
-    password = CharField(default="")
+    login = CharField(default='')
+    password = CharField(default='')
     id_user = ForeignKeyField(Users, related_name='auth_data_user_id', default=0)
 
 
@@ -63,10 +63,10 @@ class Disease(BaseModel):
 
 
 class Reception(BaseModel):
-    id_req = ForeignKeyField(Request, default=None)
-    id_staff = ForeignKeyField(Staff, default=None)
-    id_disease = ForeignKeyField(Disease, default=None)
-    id_type_of_treatment = ForeignKeyField(Type_of_treatment, default=None)
+    id_req = ForeignKeyField(Request, default=0)
+    id_staff = ForeignKeyField(Staff, default=0)
+    id_disease = ForeignKeyField(Disease, default=0)
+    id_type_of_treatment = ForeignKeyField(Type_of_treatment, default=0)
     description_of_treatment = CharField(default='')
 
 

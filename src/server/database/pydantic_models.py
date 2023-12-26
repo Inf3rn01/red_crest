@@ -15,6 +15,7 @@ class Department(BaseModelModify):
 
 
 class Staff(BaseModelModify):
+    id_user: int = None
     id_post: int = None
     id_department: int = None
 
@@ -25,8 +26,6 @@ class Role(BaseModelModify):
 
 class Users(BaseModelModify):
     FIO: str = ''
-    login: str = ''
-    password: str = ''
     id_role: int = None
 
 

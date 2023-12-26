@@ -1,7 +1,6 @@
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets
 from src.client.info_widget import InfoWidget
 from src.client.page_list_widget import PageListWidget
-import settings
 from src.client.api.session import Session
 
 
@@ -23,7 +22,7 @@ class MainWindow(QtWidgets.QWidget):
             exit()
 
     def init_ui(self):
-        self.setWindowTitle("PharmacyEnt App")
+        self.setWindowTitle("Red_Crest")
         self.resize(940, 620)
 
         # Init layouts
@@ -57,4 +56,3 @@ class MainWindow(QtWidgets.QWidget):
         """)
 
         content_widget.setMinimumSize(300, 400)
-

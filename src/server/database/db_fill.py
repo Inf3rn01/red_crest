@@ -42,8 +42,8 @@ def db_fill():
     ).save()
 
     Staff.create(
+        id_user=Users.get(Users.id == 1),
         id_post=Post.get(Post.id == 1),
-        id_user=Users.get(Users.id == 2),
         id_department=Department.get(Department.id == 1)
     )
 
@@ -77,7 +77,7 @@ def db_fill():
 
     Reception.create(
         id_req=Request.get(Request.id == 1),
-        id_staff=Staff.get(Staff.id == 1),
+        id_user=Users.get(Users.id == 2),
         id_disease=Disease.get(Disease.id == 1),
         id_type_of_treatment=Type_of_treatment.get(Type_of_treatment.id == 1),
         description_of_treatment="Трансплантация костного мозга, также назначаются иммуноглобулины, цитостатики, антибиотик"

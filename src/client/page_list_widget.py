@@ -16,10 +16,10 @@ class PageListWidget(QtWidgets.QWidget):
         self.setObjectName("PageListWidget")
         self.setFixedWidth(130)
 
-        market_widget = PageWidget(self, f"{IMG_DIR}/drugs.png", "Каталог", 1)
+        #market_widget = PageWidget(self, f"{IMG_DIR}/drugs.png", "Каталог", 1)
         cart_widget = PageWidget(self, f"{IMG_DIR}/shopping-cart.png", "Корзина", 2)
 
-        main_layout.addWidget(market_widget)
+        #main_layout.addWidget(market_widget)
         main_layout.addWidget(cart_widget)
         main_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         main_layout.setContentsMargins(8, 10, 0, 0)

@@ -9,7 +9,7 @@ app = fastapi.FastAPI(title='Hospital')
 [app.include_router(router) for router in routers]
 
 
-@app.get('/', include_in_schema=False)
+@app.get('/')
 def index() -> fastapi.responses.RedirectResponse:
     return fastapi.responses.RedirectResponse('/docs')
 
@@ -19,4 +19,4 @@ if __name__ == '__main__':
         from src.server.database.db_fill import db_fill
         db_fill()
 
-    uvicorn.run('server:app', reload=True, host=settings.HOST, port=settings.PORT)
+    uvicorn.run(app='start_server:app', reload=True, host=settings.HOST, port=settings.PORT)

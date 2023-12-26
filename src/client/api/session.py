@@ -3,9 +3,8 @@ from src.client.api import resolvers
 
 class Session:
     user_id: int
-    fullname: str
-    balance: str
-    regular: str
+    FIO: str
+    id_role: str
     error: str
     server_available: bool = False
 
@@ -23,6 +22,5 @@ class Session:
 
         user_data: dict = resolvers.get_user_by_id(user_id)
         self.user_id = user_data['id']
-        self.fullname = user_data['fullname']
-        self.balance = user_data['balance']
-        self.regular = user_data['regular']
+        self.FIO = user_data['FIO']
+        self.id_role = user_data['id_role']
