@@ -1,50 +1,99 @@
 import fastapi
 import peewee
+from typing import Type
 from src.server.database.models import BaseModel
 from src.server.database.pydantic_models import BaseModelModify
-from typing import Type
 
 
 class RouterManager:
-    def __init__(self, database_model: Type[BaseModel], pydantic_model: Type[BaseModelModify], prefix: str,
-                 tags: [str]) -> None:
-        self.database_model: Type[BaseModel] = database_model
-        self.pydantic_model: Type[BaseModelModify] = pydantic_model
+    def __init__(
+            self,
+            database_model: Type[BaseModel],
+            pydantic_model: Type[BaseModelModify],
+            prefix: str,
+            tags: [str]) -> None:
+        self.pydantic_model = pydantic_model
+        self.database_model = database_model
         self.fastapi_router: fastapi.APIRouter = fastapi.APIRouter(prefix=prefix, tags=tags)
         self.resolver_manager = ResolverManager(self.database_model, self.pydantic_model)
-        self.init_routers()
+        self.__init_routers()
 
-    def init_routers(self):
-        t = self.pydantic_model
+    def __init_routers(self):
+        pm = self.pydantic_model
 
-        @self.fastapi_router.get('/get_all', response_model=list[t])
-        def generate_get_all_router():
+        @self.fastapi_router.get(path='/get_all', response_model=dict)
+        def get_all_records():
             return self.resolver_manager.get_all()
 
-        @self.fastapi_router.get('/get/{id}', response_model=t)
-        def get(id: int):
-            return self.resolver_manager.get(id)
+        @self.fastapi_router.get(path='/get/{id}', response_model=dict)
+        def get_record(id: int):
+            return self.resolver_manager.get(id=id)
 
-        @self.fastapi_router.post('/create/', response_model=t)
-        def create(new_model: t):
-            return self.resolver_manager.create(new_model)
+        @self.fastapi_router.post(path='/new', response_model=dict)
+        def new(new_model: pm):
+            return self.resolver_manager.new(new_model=new_model)
 
-        @self.fastapi_router.delete('/delete/{id}', response_model=None)
+        @self.fastapi_router.put(path='/update/{id}', response_model=dict)
+        def update(id: int, new_model: pm):
+            return self.resolver_manager.update(id=id, new_model=new_model)
+
+        @self.fastapi_router.delete(path='/delete/{id}', response_model=dict)
         def delete(id: int):
-            return self.resolver_manager.delete(id)
-
-        @self.fastapi_router.put('/update/{id}', response_model=t)
-        def update(id: int, new_model: t):
-            return self.resolver_manager.update(id, new_model)
+            return self.resolver_manager.delete(id=id)
 
 
 class ResolverManager:
-    def __init__(self, database_model: Type[BaseModel], pydantic_model: Type[BaseModelModify]):
-        self.database_model: Type[BaseModel] = database_model
-        self.pydantic_model: Type[BaseModelModify] = pydantic_model
+    def __init__(self, database_model: Type[BaseModel], pydantic_model: Type[BaseModelModify]) -> None:
+        self.database_model = database_model
+        self.pydantic_model = pydantic_model
 
-    def get_all(self):
+    def check_for_errors(self) -> dict:
+        try:
+            self.check_fun()
+            return {'code': 200, 'msg': 'Successfully', 'result': False}
+        except peewee.DatabaseError as ex:
+            return {'code': 400, 'msg': str(ex), 'result': True}
+        except peewee.InterfaceError as ex:
+            return {'code': 400, 'msg': str(ex), 'result': True}
+        except peewee.DoesNotExist:
+            return {'code': 201, 'msg': 'There is no existing record to check', 'result': False}
+
+    def check_fun(self, id: int = -1):
+        return self.database_model.get(self.database_model.id == id)
+
+    def new(self, new_model: Type[BaseModelModify]) -> dict:
+        check = self.check_for_errors()
+        if check['result']:
+            return check
+
+        new_database_model = self.database_model.create()
+
+        for atr in dir(new_model):
+            if atr.startswith('__') or atr.startswith('id'):
+                continue
+            setattr(new_database_model, atr, getattr(new_model, atr))
+
+        new_database_model.save()
+
+        return self.get(id=new_database_model.id)
+
+    def get(self, id: int) -> dict:
+        check = self.check_for_errors()
+        if check["result"]:
+            return check
+
+        res = self.database_model.get_or_none(self.database_model.id == id)
+
+        return {'code': 200, 'msg': 'Succesfully', 'result': res.__data__} if res else {'code': 400, 'msg': 'Not found',
+                                                                                        'result': None}
+
+    def get_all(self) -> dict:
+        check = self.check_for_errors()
+        if check['result']:
+            return check
+
         models_list = []
+
         for model in self.database_model.select():
             new_model = {}
 
@@ -55,28 +104,21 @@ class ResolverManager:
 
             models_list.append(new_model)
 
-        return models_list
+        return {'code': 200, 'msg': 'Succesfully', 'result': models_list} if len(models_list) > 0 else {'code': 400,
+                                                                                                        'msg': 'Not found',
+                                                                                                        'result': None}
 
-    def get(self, id: int):
-        return self.database_model.get(self.database_model.id == id).__data__
+    def update(self, id: int, new_model: Type[BaseModelModify]) -> dict:
+        check = self.check_for_errors()
+        if check['result']:
+            return check
 
-    def create(self, new_model: Type[BaseModelModify]):
-        new_database_model: Type[BaseModel] = self.database_model.create()
-        for atr in dir(new_model):
-            if atr.startswith('__') or atr.startswith('id'):
-                continue
+        res = self.get(id=id)
 
-            setattr(new_database_model, atr, getattr(new_model, atr))
+        if res['code'] != 200:
+            return res
 
-        new_database_model.save()
-
-        return self.get(new_database_model.id)
-
-    def delete(self, id: int):
-        self.database_model.get(self.database_model.id == id).delete_instance()
-
-    def update(self, id: int, new_model: Type[BaseModelModify]):
-        model: Type[BaseModel] = self.database_model.get(self.database_model.id == id)
+        model = self.database_model.get(self.database_model.id == id)
 
         for atr in dir(new_model):
             if atr.startswith('__') or atr.startswith('id'):
@@ -86,4 +128,18 @@ class ResolverManager:
 
         model.save()
 
-        return self.get(model.id)
+        return {"code": 200, 'msg': 'Successfully', 'result': self.get(id=model.id)['result']}
+
+    def delete(self, id: int) -> dict:
+        check = self.check_for_errors()
+        if check['result']:
+            return check
+
+        res = self.get(id=id)
+
+        if res['code'] != 200:
+            return res
+
+        self.database_model.get(self.database_model.id == id).delete_instance()
+
+        return {'code': 200, 'msg': 'Succesfully', 'result': None}
